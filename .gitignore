@@ -1,0 +1,5 @@
+pages/writings/
+pages/projects/
+data/writings.json
+data/projects.json
+.DS_Store

@@ -1,3 +1,37 @@
+const siteScript = document.currentScript;
+const siteRoot = new URL('.', siteScript.src);
+const navigationLinks = [
+  ['index.html', 'Home'],
+  ['pages/writings.html', 'Writings'],
+  ['pages/projects.html', 'Projects'],
+  ['pages/contact.html', 'Contact'],
+  ['music-share/index.html', 'Music Share'],
+];
+
+const normalizePath = (url) => {
+  const path = new URL(url).pathname;
+  return path.endsWith('/') ? `${path}index.html` : path;
+};
+
+const currentPath = normalizePath(window.location.href);
+const homeUrl = new URL('index.html', siteRoot);
+const header = document.querySelector('[data-site-header]');
+const footer = document.querySelector('[data-site-footer]');
+
+if (header) {
+  const links = navigationLinks.map(([path, label]) => {
+    const href = new URL(path, siteRoot);
+    const current = normalizePath(href.href) === currentPath ? ' aria-current="page"' : '';
+    return `<a href="${href.href}"${current}>${label}</a>`;
+  }).join('');
+
+  header.innerHTML = `<a class="wordmark" href="${homeUrl.href}" aria-label="Andreas Papaeracleous home">Andreas Papaeracleous<span>.</span></a><button class="menu-button" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="site-nav"><span aria-hidden="true"></span><span aria-hidden="true"></span></button><nav id="site-nav" class="site-nav" aria-label="Main navigation">${links}</nav>`;
+}
+
+if (footer) {
+  footer.innerHTML = `<a class="wordmark" href="${homeUrl.href}">Andreas Papaeracleous<span>.</span></a><nav class="footer-social" aria-label="Andreas Papaeracleous on social media"><a href="https://www.youtube.com/@andreaspapas" target="_blank" rel="noreferrer" aria-label="Visit Andreas Papaeracleous on YouTube"><i class="fa fa-youtube-play" aria-hidden="true"></i><span class="sr-only">YouTube</span></a><a href="https://www.linkedin.com/in/andreaspapas" target="_blank" rel="noreferrer" aria-label="Connect with Andreas Papaeracleous on LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i><span class="sr-only">LinkedIn</span></a></nav><p>© <span id="year"></span> Andreas Papaeracleous.</p>`;
+}
+
 const menuButton = document.querySelector('.menu-button');
 const siteNav = document.querySelector('.site-nav');
 
@@ -6,6 +40,14 @@ if (menuButton && siteNav) {
     const isOpen = siteNav.classList.toggle('is-open');
     menuButton.setAttribute('aria-expanded', String(isOpen));
     menuButton.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+  });
+
+  siteNav.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      siteNav.classList.remove('is-open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.setAttribute('aria-label', 'Open navigation');
+    });
   });
 }
 

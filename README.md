@@ -53,6 +53,6 @@ linkLabel: Visit project
 ./scripts/preview.sh
 ```
 
-Then visit `http://localhost:8000`. The script rebuilds the Markdown pages and runs basic local checks before starting the server. To run the checks without opening a server, use `./scripts/preview.sh --check`; pass a custom port such as `./scripts/preview.sh 4173` when needed.
+The script rebuilds the Markdown pages, opens the site in your default browser, and serves it on your local network. It prints and copies the local-network URL (for example, `http://192.168.1.42:8000`) so it can be opened on a phone connected to the same network. To run the checks without opening a server, use `./scripts/preview.sh --check`; pass a custom port such as `./scripts/preview.sh 4173` when needed.
 
 To publish, push the repository to GitHub, set **Settings → Pages → Build and deployment → Source** to **GitHub Actions**, then push to `main`.

@@ -75,7 +75,7 @@ async function populateArchive(list) {
       const copy = document.createElement('span'); copy.className = 'content-copy';
       const title = document.createElement('h2'); title.textContent = entry.title; copy.append(title);
       if (entry.description) { const description = document.createElement('p'); description.textContent = entry.description; copy.append(description); }
-      const arrow = document.createElement('b'); arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '↗';
+      const arrow = document.createElement('b'); arrow.className = 'link-arrow'; arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '↗\uFE0E';
       link.append(date, copy, arrow); item.append(link); list.append(item);
     });
   } catch (error) {

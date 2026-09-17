@@ -66,17 +66,29 @@ function renderMarkdown(markdown) {
   let paragraph = [];
   let list = [];
   let listType = '';
+  let quote = [];
   const flushParagraph = () => { if (paragraph.length) blocks.push(`<p>${inlineMarkdown(paragraph.join(' '))}</p>`); paragraph = []; };
   const flushList = () => { if (list.length) blocks.push(`<${listType}>${list.map((item) => `<li>${inlineMarkdown(item)}</li>`).join('')}</${listType}>`); list = []; listType = ''; };
+  const flushQuote = () => {
+    if (!quote.length) return;
+    const lines = quote.map((line) => line.trim());
+    const attribution = lines.at(-1)?.match(/^[—–-]\s*(.+)$/)?.[1];
+    if (attribution) lines.pop();
+    const paragraphs = lines.join('\n').split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean);
+    blocks.push(`<blockquote>${paragraphs.map((item) => `<p>${inlineMarkdown(item.replace(/\s*\n\s*/g, ' '))}</p>`).join('')}${attribution ? `<cite>— ${inlineMarkdown(attribution)}</cite>` : ''}</blockquote>`);
+    quote = [];
+  };
   for (const line of markdown.split(/\r?\n/)) {
     const heading = line.match(/^(#{2,3})\s+(.+)$/);
-    const quote = line.match(/^>\s*(.+)$/);
+    const quoteLine = line.match(/^>\s?(.*)$/);
     const unordered = line.match(/^[-*]\s+(.+)$/);
     const ordered = line.match(/^\d+\.\s+(.+)$/);
     const image = line.match(/^!\[([^\]]*)\]\((https?:\/\/[^\s)]+|[a-zA-Z0-9][a-zA-Z0-9._/-]*)\)$/);
     const video = line.match(/^!youtube\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)$/i);
     const bareVideo = line.match(/^(https?:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s]+)$/);
-    if (!line.trim()) { flushParagraph(); flushList(); continue; }
+    if (!line.trim()) { flushParagraph(); flushList(); flushQuote(); continue; }
+    if (quoteLine) { flushParagraph(); flushList(); quote.push(quoteLine[1]); continue; }
+    flushQuote();
     if (heading) { flushParagraph(); flushList(); blocks.push(`<h${heading[1].length}>${inlineMarkdown(heading[2])}</h${heading[1].length}>`); continue; }
     if (video || bareVideo) {
       flushParagraph(); flushList(); const url = video ? video[2] : bareVideo[1]; const id = youtubeId(url);
@@ -85,11 +97,10 @@ function renderMarkdown(markdown) {
       continue;
     }
     if (image) { flushParagraph(); flushList(); const src = /^https?:/.test(image[2]) ? image[2] : `../../assets/${image[2]}`; if (localAsset.test(image[2]) || /^https?:/.test(image[2])) blocks.push(`<img src="${escapeHtml(src)}" alt="${escapeHtml(image[1])}" loading="lazy" />`); continue; }
-    if (quote) { flushParagraph(); flushList(); blocks.push(`<blockquote><p>${inlineMarkdown(quote[1])}</p></blockquote>`); continue; }
     if (unordered || ordered) { flushParagraph(); const nextType = unordered ? 'ul' : 'ol'; if (listType && listType !== nextType) flushList(); listType = nextType; list.push((unordered || ordered)[1]); continue; }
     flushList(); paragraph.push(line.trim());
   }
-  flushParagraph(); flushList(); return blocks.join('\n');
+  flushParagraph(); flushList(); flushQuote(); return blocks.join('\n');
 }
 
 function page(post, slug, collection) {

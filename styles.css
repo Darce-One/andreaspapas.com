@@ -69,7 +69,11 @@ p, li { text-align: justify; hyphens: auto; }
 .post-body p, .post-body li { font-size: 1.08rem; }
 .post-body h2, .post-body h3 { margin: 2.6rem 0 1rem; font-weight: 500; line-height: 1.2; }
 .post-body h2 { font-size: 1.8rem; }.post-body h3 { font-size: 1.35rem; }
-.post-body blockquote { margin: 2rem 0; border-left: 3px solid var(--accent-soft); padding-left: 1.2rem; color: var(--text-muted); font-style: italic; }
+.post-body blockquote { position: relative; margin: 3rem 0; padding: 1.3rem 1.5rem 1.2rem 2.25rem; border: 1px solid var(--border); border-left: 4px solid var(--accent); background: var(--bg-card); color: var(--text); }
+.post-body blockquote::before { position: absolute; z-index: 0; top: -.65rem; left: 1.05rem; color: var(--accent); background: transparent; content: "“"; font-size: 3.4rem; font-style: normal; line-height: 1; }
+.post-body blockquote p { position: relative; z-index: 1; margin: 0; font-size: 1.2rem; line-height: 1.55; font-style: italic; text-align: left; }
+.post-body blockquote p + p { margin-top: 1rem; }
+.post-body blockquote cite { position: relative; z-index: 1; display: block; margin-top: 1rem; color: var(--text-muted); font-family: "Source Code Pro", monospace; font-size: .72rem; font-style: normal; letter-spacing: .06em; text-transform: uppercase; }
 .post-body code { border-radius: 2px; background: var(--bg-card); padding: .12em .35em; font-family: "Source Code Pro", monospace; font-size: .85em; }
 .post-body img { display: block; width: 100%; height: auto; margin: 2rem 0; border: 1px solid var(--border); }
 .video-embed { position: relative; aspect-ratio: 16 / 9; margin: 2rem 0; background: var(--bg-card); }

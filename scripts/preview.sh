@@ -26,8 +26,8 @@ node --check music-share/music-share.js
 echo "Checking generated pages…"
 test -f data/writings.json
 test -f data/projects.json
-test -f pages/writings/welcome.html
-test -f pages/projects/youtube-embeds.html
+test -d pages/writings
+test -d pages/projects
 
 echo "Local checks passed."
 

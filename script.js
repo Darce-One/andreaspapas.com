@@ -63,8 +63,16 @@ async function populateArchive(list) {
     entries.forEach((entry) => {
       const item = document.createElement('li');
       const link = document.createElement('a'); link.href = entry.url;
+      if (entry.thumbnail) {
+        const thumbnail = document.createElement('img');
+        thumbnail.className = 'project-thumbnail';
+        thumbnail.src = entry.thumbnail;
+        thumbnail.alt = '';
+        thumbnail.loading = 'lazy';
+        link.append(thumbnail);
+      }
       const date = document.createElement('time'); date.className = 'content-date'; date.dateTime = entry.rawDate; date.textContent = entry.date;
-      const copy = document.createElement('span');
+      const copy = document.createElement('span'); copy.className = 'content-copy';
       const title = document.createElement('h2'); title.textContent = entry.title; copy.append(title);
       if (entry.description) { const description = document.createElement('p'); description.textContent = entry.description; copy.append(description); }
       const arrow = document.createElement('b'); arrow.setAttribute('aria-hidden', 'true'); arrow.textContent = '↗';

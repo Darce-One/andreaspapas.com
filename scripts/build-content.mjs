@@ -14,8 +14,8 @@ const escapeHtml = (value) => String(value)
   .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
 const displayDate = (value) => new Intl.DateTimeFormat('en-US', {
-  month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-}).format(new Date(`${value}T00:00:00Z`));
+  month: 'long', ...(value.length === 7 ? {} : { day: 'numeric' }), year: 'numeric', timeZone: 'UTC',
+}).format(new Date(`${value}${value.length === 7 ? '-01' : ''}T00:00:00Z`));
 
 function parsePost(source, filename) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
@@ -28,15 +28,20 @@ function parsePost(source, filename) {
     return [key, value];
   }));
   if (!metadata.title || !metadata.date) throw new Error(`${filename} needs title and date.`);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(metadata.date)) throw new Error(`${filename} needs a YYYY-MM-DD date.`);
+  if (!/^\d{4}-\d{2}(?:-\d{2})?$/.test(metadata.date)) throw new Error(`${filename} needs a YYYY-MM or YYYY-MM-DD date.`);
   return { ...metadata, body: match[2].trim() };
 }
 
-function youtubeId(url) {
+function youtubeEmbed(url) {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname === 'youtu.be') return parsed.pathname.slice(1).match(/^[\w-]{11}$/)?.[0];
-    if (parsed.hostname.endsWith('youtube.com')) return (parsed.searchParams.get('v') || parsed.pathname.match(/^\/(?:embed|shorts)\/([\w-]{11})/)?.[1])?.match(/^[\w-]{11}$/)?.[0];
+    const id = parsed.hostname === 'youtu.be'
+      ? parsed.pathname.slice(1).match(/^[\w-]{11}$/)?.[0]
+      : parsed.hostname.endsWith('youtube.com')
+        ? (parsed.searchParams.get('v') || parsed.pathname.match(/^\/(?:embed|shorts)\/([\w-]{11})/)?.[1])?.match(/^[\w-]{11}$/)?.[0]
+        : null;
+    const start = Number.parseInt(parsed.searchParams.get('t') || parsed.searchParams.get('start') || '', 10);
+    return id ? { id, start: Number.isSafeInteger(start) && start >= 0 ? start : null } : null;
   } catch { /* Markdown renderer will retain invalid URLs as text. */ }
   return null;
 }
@@ -79,7 +84,7 @@ function renderMarkdown(markdown) {
     quote = [];
   };
   for (const line of markdown.split(/\r?\n/)) {
-    const heading = line.match(/^(#{2,3})\s+(.+)$/);
+    const heading = line.match(/^(#{2,5})\s+(.+)$/);
     const quoteLine = line.match(/^>\s?(.*)$/);
     const unordered = line.match(/^[-*]\s+(.+)$/);
     const ordered = line.match(/^\d+\.\s+(.+)$/);
@@ -91,8 +96,8 @@ function renderMarkdown(markdown) {
     flushQuote();
     if (heading) { flushParagraph(); flushList(); blocks.push(`<h${heading[1].length}>${inlineMarkdown(heading[2])}</h${heading[1].length}>`); continue; }
     if (video || bareVideo) {
-      flushParagraph(); flushList(); const url = video ? video[2] : bareVideo[1]; const id = youtubeId(url);
-      if (id) blocks.push(`<figure class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${escapeHtml(video?.[1] || 'YouTube video')}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></figure>`);
+      flushParagraph(); flushList(); const url = video ? video[2] : bareVideo[1]; const embed = youtubeEmbed(url);
+      if (embed) blocks.push(`<figure class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${embed.id}${embed.start === null ? '' : `?start=${embed.start}`}" title="${escapeHtml(video?.[1] || 'YouTube video')}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></figure>`);
       else blocks.push(`<p>${inlineMarkdown(url)}</p>`);
       continue;
     }
@@ -124,7 +129,8 @@ for (const [name] of Object.entries(collections)) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error(`${filename} needs a lowercase, hyphenated filename.`);
     const post = parsePost(await readFile(path.join(sourceDir, filename), 'utf8'), filename);
     await writeFile(path.join(outputDir, `${slug}.html`), page(post, slug, name));
-    return { title: post.title, description: post.description || '', date: displayDate(post.date), rawDate: post.date, url: `${name}/${slug}.html`, sortDate: post.date };
+    const thumbnail = name === 'projects' && post.thumbnail && localAsset.test(post.thumbnail) ? `../assets/${post.thumbnail}` : '';
+    return { title: post.title, description: post.description || '', thumbnail, date: displayDate(post.date), rawDate: post.date, url: `${name}/${slug}.html`, sortDate: post.date };
   }));
   entries.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
   await writeFile(path.join(root, 'data', `${name}.json`), `${JSON.stringify(entries.map(({ sortDate, ...entry }) => entry), null, 2)}\n`);

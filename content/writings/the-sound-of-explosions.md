@@ -29,7 +29,7 @@ Were we to play the piece again, it would sound different. Different melodies, h
 
 To listen to a recording would be against the point, as the piece exists in the moment.
 
-This piece was first played on the 31st of March 2023. As the piece started, the sounds were all over the place as the musicians didn’t know what to expect. We were still trying to figure out what we sounded like. The video opened with a disclaimer that set the tone for the piece. The question ‘What is the sound of explosions?’ was posed, and the musicians replied with loud and textural sounds that were processed to sound harsh and distorted.
+This piece was first played on 31 March 2023. As the piece started, the sounds were all over the place as the musicians didn’t know what to expect. We were still trying to figure out what we sounded like. The video opened with a disclaimer that set the tone for the piece. The question ‘What is the sound of explosions?’ was posed, and the musicians replied with loud and textural sounds that were processed to sound harsh and distorted.
 
 As the next few questions appeared on screen, it became clear the musicians had found their place. Their responses to the questions were unique yet united. As the piece progressed, Music emerged from the noise, like a phoenix rising out of the ashes, a comparison often made about the city of Beirut.
 

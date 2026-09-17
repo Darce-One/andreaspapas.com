@@ -13,7 +13,7 @@ const escapeHtml = (value) => String(value)
   .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
   .replaceAll('"', '&quot;').replaceAll("'", '&#039;');
 
-const displayDate = (value) => new Intl.DateTimeFormat('en-US', {
+const displayDate = (value) => new Intl.DateTimeFormat('en-GB', {
   month: 'long', ...(value.length === 7 ? {} : { day: 'numeric' }), year: 'numeric', timeZone: 'UTC',
 }).format(new Date(`${value}${value.length === 7 ? '-01' : ''}T00:00:00Z`));
 
@@ -35,13 +35,15 @@ function parsePost(source, filename) {
 function youtubeEmbed(url) {
   try {
     const parsed = new URL(url);
+    const playlist = parsed.hostname.endsWith('youtube.com') && parsed.searchParams.get('list')?.match(/^[\w-]+$/)?.[0];
+    if (playlist) return { id: null, playlist, start: null };
     const id = parsed.hostname === 'youtu.be'
       ? parsed.pathname.slice(1).match(/^[\w-]{11}$/)?.[0]
       : parsed.hostname.endsWith('youtube.com')
         ? (parsed.searchParams.get('v') || parsed.pathname.match(/^\/(?:embed|shorts)\/([\w-]{11})/)?.[1])?.match(/^[\w-]{11}$/)?.[0]
         : null;
     const start = Number.parseInt(parsed.searchParams.get('t') || parsed.searchParams.get('start') || '', 10);
-    return id ? { id, start: Number.isSafeInteger(start) && start >= 0 ? start : null } : null;
+    return id ? { id, playlist: null, start: Number.isSafeInteger(start) && start >= 0 ? start : null } : null;
   } catch { /* Markdown renderer will retain invalid URLs as text. */ }
   return null;
 }
@@ -97,7 +99,12 @@ function renderMarkdown(markdown) {
     if (heading) { flushParagraph(); flushList(); blocks.push(`<h${heading[1].length}>${inlineMarkdown(heading[2])}</h${heading[1].length}>`); continue; }
     if (video || bareVideo) {
       flushParagraph(); flushList(); const url = video ? video[2] : bareVideo[1]; const embed = youtubeEmbed(url);
-      if (embed) blocks.push(`<figure class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${embed.id}${embed.start === null ? '' : `?start=${embed.start}`}" title="${escapeHtml(video?.[1] || 'YouTube video')}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></figure>`);
+      if (embed) {
+        const source = embed.playlist
+          ? `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(embed.playlist)}`
+          : `https://www.youtube-nocookie.com/embed/${embed.id}${embed.start === null ? '' : `?start=${embed.start}`}`;
+        blocks.push(`<figure class="video-embed"><iframe src="${source}" title="${escapeHtml(video?.[1] || 'YouTube video')}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></figure>`);
+      }
       else blocks.push(`<p>${inlineMarkdown(url)}</p>`);
       continue;
     }
@@ -113,7 +120,7 @@ function page(post, slug, collection) {
   const subtitle = post.subtitle ? `<p class="post-subtitle">${escapeHtml(post.subtitle)}</p>` : '';
   const externalLink = post.link ? `<p><a class="back-link" href="${escapeHtml(post.link)}">${escapeHtml(post.linkLabel || 'Visit project')} ↗</a></p>` : '';
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="${escapeHtml(post.description || post.title)} — Andreas Papaeracleous." /><title>${escapeHtml(post.title)} — Andreas Papaeracleous</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="../../styles.css" /></head>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content="${escapeHtml(post.description || post.title)} — Andreas Papaeracleous." /><title>${escapeHtml(post.title)} — Andreas Papaeracleous</title><link rel="icon" href="../../assets/favicon.svg" type="image/svg+xml" /><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="../../styles.css" /></head>
 <body><a class="skip-link" href="#main">Skip to content</a><header class="site-header shell" data-site-header></header><main id="main"><article class="post"><header class="post-header"><p class="eyebrow">${section.eyebrow}</p><h1>${escapeHtml(post.title)}</h1>${subtitle}<p class="post-date">${escapeHtml(displayDate(post.date))}</p></header><div class="post-body">${renderMarkdown(post.body)}${externalLink}</div><a class="back-link" href="../${section.archive}">← ${section.heading}</a></article></main><footer class="site-footer shell" data-site-footer></footer><script src="../../script.js"></script></body></html>`;
 }
 

@@ -4,7 +4,7 @@ date: 2025-10-16
 description: An introduction to the tools, themes, and questions that make up music technology.
 ---
 
-This page outlines the contents presented to university students in a presentation given on October 16th, 2025.
+This page outlines the contents presented to university students in a presentation given on 16 October 2025.
 
 ## What is Music Technology?
 

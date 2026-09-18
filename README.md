@@ -47,6 +47,23 @@ link: https://example.com
 linkLabel: Visit project
 ```
 
+## Add a Music Share recommendation
+
+Run the interactive helper from the repository root:
+
+```sh
+./scripts/add-recommendation
+```
+
+It asks for the album and artist, searches MusicBrainz, lets you confirm the
+matching release, downloads its cover from the Cover Art Archive, creates the
+entry under `music-share/recommendations/`, and opens the new `info.json` in
+Zed. It prefills up to five MusicBrainz genres in `tags`; edit those genres and
+fill in `note`, then save the file.
+
+The helper uses only Python's standard library and does not need API keys. If
+MusicBrainz has no cover, it asks for a direct image URL instead.
+
 ## Preview and publish
 
 ```sh

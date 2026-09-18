@@ -3,3 +3,4 @@ pages/projects/
 data/writings.json
 data/projects.json
 .DS_Store
+__pycache__/

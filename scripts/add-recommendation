@@ -1,0 +1,285 @@
+#!/usr/bin/env python3
+"""Interactively add an album recommendation to The Music Share."""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import unicodedata
+from pathlib import Path
+from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlencode
+from urllib.request import Request, urlopen
+
+
+ROOT = Path(__file__).resolve().parent.parent
+MUSIC_SHARE = ROOT / "music-share"
+RECOMMENDATIONS = MUSIC_SHARE / "recommendations"
+INDEX = RECOMMENDATIONS / "index.json"
+MUSICBRAINZ_API = "https://musicbrainz.org/ws/2/release-group/"
+COVER_ART_API = "https://coverartarchive.org/release-group"
+USER_AGENT = os.environ.get(
+    "MUSIC_SHARE_USER_AGENT",
+    "TheMusicShare/1.0 (personal recommendation helper)",
+)
+MUSICBRAINZ_MIN_INTERVAL = 1.05
+_last_musicbrainz_request = 0.0
+
+
+class UserCancelled(Exception):
+    """Raised when the user chooses to stop without changing the repository."""
+
+
+def prompt_required(label: str) -> str:
+    while True:
+        value = input(label).strip()
+        if value:
+            return value
+        print("Please enter a value.")
+
+
+def lucene_phrase(value: str) -> str:
+    """Escape a value for use inside a quoted MusicBrainz/Lucene phrase."""
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def request_bytes(url: str, accept: str) -> tuple[bytes, str]:
+    request = Request(
+        url,
+        headers={"Accept": accept, "User-Agent": USER_AGENT},
+    )
+    with urlopen(request, timeout=20) as response:
+        return response.read(), response.headers.get_content_type()
+
+
+def musicbrainz_json(url: str) -> dict[str, Any]:
+    global _last_musicbrainz_request
+
+    elapsed = time.monotonic() - _last_musicbrainz_request
+    if elapsed < MUSICBRAINZ_MIN_INTERVAL:
+        time.sleep(MUSICBRAINZ_MIN_INTERVAL - elapsed)
+    body, _ = request_bytes(url, "application/json")
+    _last_musicbrainz_request = time.monotonic()
+    return json.loads(body)
+
+
+def search_release_groups(album: str, artist: str) -> list[dict[str, Any]]:
+    query = (
+        f'releasegroup:"{lucene_phrase(album)}" '
+        f'AND artist:"{lucene_phrase(artist)}"'
+    )
+    url = f"{MUSICBRAINZ_API}?{urlencode({'query': query, 'fmt': 'json', 'limit': 8})}"
+    payload = musicbrainz_json(url)
+    return payload.get("release-groups", [])
+
+
+def fetch_genres(release_group_id: str, limit: int = 5) -> list[str]:
+    params = urlencode({"inc": "genres", "fmt": "json"})
+    url = f"{MUSICBRAINZ_API}{quote(release_group_id)}?{params}"
+    payload = musicbrainz_json(url)
+    ranked = sorted(
+        payload.get("genres") or [],
+        key=lambda genre: genre.get("count", 0),
+        reverse=True,
+    )
+
+    genres: list[str] = []
+    seen: set[str] = set()
+    for genre in ranked:
+        name = str(genre.get("name", "")).strip()
+        key = name.casefold()
+        if not name or key in seen or genre.get("count", 0) <= 0:
+            continue
+        genres.append(name)
+        seen.add(key)
+        if len(genres) == limit:
+            break
+    return genres
+
+
+def artist_credit(release_group: dict[str, Any]) -> str:
+    credits = release_group.get("artist-credit") or []
+    parts: list[str] = []
+    for credit in credits:
+        if isinstance(credit, str):
+            parts.append(credit)
+            continue
+        parts.append(credit.get("name") or credit.get("artist", {}).get("name", ""))
+        parts.append(credit.get("joinphrase", ""))
+    return "".join(parts).strip() or "Unknown artist"
+
+
+def result_label(number: int, release_group: dict[str, Any]) -> str:
+    title = release_group.get("title", "Untitled")
+    artist = artist_credit(release_group)
+    year = (release_group.get("first-release-date") or "????")[:4]
+    primary_type = release_group.get("primary-type") or "Release"
+    secondary_types = release_group.get("secondary-types") or []
+    kind = ", ".join([primary_type, *secondary_types])
+    score = release_group.get("score", "?")
+    return f"  {number}. {artist} — {title} ({year}; {kind}; match {score}%)"
+
+
+def choose_release_group(results: list[dict[str, Any]]) -> dict[str, Any]:
+    if not results:
+        raise LookupError("MusicBrainz returned no matching albums.")
+
+    print("\nMatches:")
+    for number, release_group in enumerate(results, start=1):
+        print(result_label(number, release_group))
+
+    while True:
+        choice = input("\nChoose a match [1], or q to cancel: ").strip().lower()
+        if choice == "q":
+            raise UserCancelled
+        if not choice:
+            return results[0]
+        if choice.isdigit() and 1 <= int(choice) <= len(results):
+            return results[int(choice) - 1]
+        print(f"Enter a number from 1 to {len(results)}, or q.")
+
+
+def download_image(url: str) -> bytes:
+    body, content_type = request_bytes(url, "image/*")
+    if not content_type.startswith("image/"):
+        raise ValueError(f"The URL returned {content_type}, not an image.")
+    if not body:
+        raise ValueError("The image response was empty.")
+    return body
+
+
+def get_cover_art(release_group_id: str) -> bytes:
+    url = f"{COVER_ART_API}/{quote(release_group_id)}/front-1200"
+    try:
+        return download_image(url)
+    except HTTPError as error:
+        if error.code != 404:
+            raise
+
+    print("\nNo front cover was found in the Cover Art Archive.")
+    while True:
+        custom_url = input("Paste an image URL, or q to cancel: ").strip()
+        if custom_url.lower() == "q":
+            raise UserCancelled
+        if custom_url.startswith(("https://", "http://")):
+            return download_image(custom_url)
+        print("Enter a complete http:// or https:// URL, or q.")
+
+
+def slugify(value: str) -> str:
+    ascii_value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_value.lower()).strip("-")
+    return slug or "album"
+
+
+def atomic_json_write(path: Path, value: Any) -> None:
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as temporary:
+        json.dump(value, temporary, ensure_ascii=False, indent=2)
+        temporary.write("\n")
+        temporary_path = Path(temporary.name)
+    temporary_path.replace(path)
+
+
+def create_entry(
+    artist: str,
+    album: str,
+    genres: list[str],
+    art: bytes,
+) -> tuple[Path, str]:
+    slug = slugify(f"{artist}-{album}")
+    destination = RECOMMENDATIONS / slug
+
+    if destination.exists():
+        raise FileExistsError(f"{destination.relative_to(ROOT)} already exists")
+
+    with INDEX.open(encoding="utf-8") as index_file:
+        slugs = json.load(index_file)
+    if not isinstance(slugs, list) or not all(isinstance(item, str) for item in slugs):
+        raise ValueError("music-share/recommendations/index.json must contain a JSON array")
+    if slug in slugs:
+        raise FileExistsError(f"{slug!r} is already in the recommendation index")
+
+    destination.mkdir()
+    try:
+        info_path = destination / "info.json"
+        atomic_json_write(
+            info_path,
+            {"artist": artist, "album": album, "tags": genres, "note": ""},
+        )
+        (destination / "art.jpg").write_bytes(art)
+        atomic_json_write(INDEX, [slug, *slugs])
+    except Exception:
+        shutil.rmtree(destination)
+        raise
+
+    return info_path, slug
+
+
+def open_in_zed(info_path: Path) -> None:
+    zed = shutil.which("zed")
+    if not zed:
+        print(f"\nCreated {info_path.relative_to(ROOT)}, but the zed command was not found.")
+        return
+    subprocess.run([zed, str(info_path)], check=False)
+
+
+def main() -> int:
+    print("Add an album to The Music Share\n")
+    try:
+        album_query = prompt_required("Album name: ")
+        artist_query = prompt_required("Artist name: ")
+        print("\nSearching MusicBrainz…")
+        results = search_release_groups(album_query, artist_query)
+        selected = choose_release_group(results)
+
+        album = selected.get("title") or album_query
+        artist = artist_credit(selected)
+        release_group_id = selected.get("id")
+        if not release_group_id:
+            raise ValueError("The selected MusicBrainz result has no release-group ID.")
+
+        print("\nFetching genres from MusicBrainz…")
+        genres = fetch_genres(release_group_id)
+        if genres:
+            print(f"Genres: {', '.join(genres)}")
+        else:
+            print("No MusicBrainz genres found; leaving tags empty.")
+
+        print(f"\nDownloading cover art for {artist} — {album}…")
+        art = get_cover_art(release_group_id)
+        info_path, slug = create_entry(artist, album, genres, art)
+        print(
+            f"Created music-share/recommendations/{slug}/ "
+            "and added it to the top of the index."
+        )
+        open_in_zed(info_path)
+        return 0
+    except UserCancelled:
+        print("\nCancelled. No files were changed.")
+        return 0
+    except (HTTPError, URLError, TimeoutError) as error:
+        print(f"\nNetwork error: {error}", file=sys.stderr)
+    except (FileExistsError, LookupError, ValueError, json.JSONDecodeError) as error:
+        print(f"\nCould not create the recommendation: {error}", file=sys.stderr)
+    except KeyboardInterrupt:
+        print("\n\nCancelled. No files were changed.")
+        return 130
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

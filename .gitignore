@@ -4,3 +4,4 @@ data/writings.json
 data/projects.json
 .DS_Store
 __pycache__/
+TODO.md

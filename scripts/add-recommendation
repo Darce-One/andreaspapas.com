@@ -30,6 +30,9 @@ USER_AGENT = os.environ.get(
     "TheMusicShare/1.0 (personal recommendation helper)",
 )
 MUSICBRAINZ_MIN_INTERVAL = 1.05
+RETRYABLE_HTTP_STATUS = {429, 500, 502, 503, 504}
+INITIAL_RETRY_DELAY = 2.0
+MAX_RETRY_DELAY = 30.0
 _last_musicbrainz_request = 0.0
 
 
@@ -55,8 +58,29 @@ def request_bytes(url: str, accept: str) -> tuple[bytes, str]:
         url,
         headers={"Accept": accept, "User-Agent": USER_AGENT},
     )
-    with urlopen(request, timeout=20) as response:
-        return response.read(), response.headers.get_content_type()
+    retry_delay = INITIAL_RETRY_DELAY
+
+    while True:
+        try:
+            with urlopen(request, timeout=20) as response:
+                return response.read(), response.headers.get_content_type()
+        except HTTPError as error:
+            if error.code not in RETRYABLE_HTTP_STATUS:
+                raise
+            retry_after = (error.headers or {}).get("Retry-After")
+            if retry_after and retry_after.isdigit():
+                retry_delay = min(float(retry_after), MAX_RETRY_DELAY)
+            reason = f"HTTP {error.code} {error.reason}"
+        except (URLError, TimeoutError) as error:
+            reason = str(error.reason if isinstance(error, URLError) else error)
+
+        print(
+            f"\nTemporary network error ({reason}). "
+            f"Retrying in {retry_delay:g}s; press Ctrl-C to stop.",
+            file=sys.stderr,
+        )
+        time.sleep(retry_delay)
+        retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
 
 
 def musicbrainz_json(url: str) -> dict[str, Any]:

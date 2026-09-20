@@ -62,7 +62,9 @@ Zed. It prefills up to five MusicBrainz genres in `tags`; edit those genres and
 fill in `note`, then save the file.
 
 The helper uses only Python's standard library and does not need API keys. If
-MusicBrainz has no cover, it asks for a direct image URL instead.
+MusicBrainz has no cover, it asks for a direct image URL instead. Temporary
+network and service errors retry automatically with increasing delays until the
+request succeeds or you press `Ctrl-C`.
 
 ## Preview and publish
 

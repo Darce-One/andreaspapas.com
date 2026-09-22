@@ -135,11 +135,13 @@ for (const [name] of Object.entries(collections)) {
     const slug = path.basename(filename, '.md');
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error(`${filename} needs a lowercase, hyphenated filename.`);
     const post = parsePost(await readFile(path.join(sourceDir, filename), 'utf8'), filename);
+    if (post.archive === 'true') return null;
     await writeFile(path.join(outputDir, `${slug}.html`), page(post, slug, name));
     const thumbnail = name === 'projects' && post.thumbnail && localAsset.test(post.thumbnail) ? `../assets/${post.thumbnail}` : '';
     return { title: post.title, description: post.description || '', thumbnail, date: displayDate(post.date), rawDate: post.date, url: `${name}/${slug}.html`, sortDate: post.date };
   }));
-  entries.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
-  await writeFile(path.join(root, 'data', `${name}.json`), `${JSON.stringify(entries.map(({ sortDate, ...entry }) => entry), null, 2)}\n`);
-  console.log(`Built ${entries.length} ${name}.`);
+  const publishedEntries = entries.filter(Boolean);
+  publishedEntries.sort((a, b) => b.sortDate.localeCompare(a.sortDate));
+  await writeFile(path.join(root, 'data', `${name}.json`), `${JSON.stringify(publishedEntries.map(({ sortDate, ...entry }) => entry), null, 2)}\n`);
+  console.log(`Built ${publishedEntries.length} ${name}.`);
 }

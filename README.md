@@ -27,6 +27,15 @@ subtitle: Optional standfirst for the full page.
 Your Markdown content begins here.
 ```
 
+To retain an item's source without publishing it, add this optional front matter:
+
+```yaml
+archive: true
+```
+
+This removes the item from its archive listing and prevents its individual page
+from being generated. Omit the field to publish the item.
+
 Supported body Markdown is intentionally simple: paragraphs, `##` and `###` headings, blockquotes, ordered/unordered lists, inline links, bold, italics, code, and images. Put local images in `assets/` and reference them relative to that folder, e.g. `![Alt text](project-image.jpg)`. For a styled quote attribution, put `> — Name` as the final line of the quote block.
 
 ### Embed a YouTube video

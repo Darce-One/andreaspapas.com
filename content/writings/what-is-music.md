@@ -2,6 +2,7 @@
 title: What is Music?
 date: 2023-09-18
 description: A personal history and definition of music.
+archive: true
 ---
 
 ![Music as an abstract concept](what-is-music.png)
@@ -40,7 +41,7 @@ The story of Orpheus tells us that music has a divine quality and can take you a
 
 ## So what is Music?
 
-There is a divide between the music we listen to at home and the music we listen to live. At home, our music sounds the same every time we set the needle/press play, and after a few listens, we know exactly what to expect at every bar. This led to studio releases needing to be over-engineered for ‘perfection’.
+There is a divide between the music we listen to at home and the music we listen to live. At home, our music sounds the same every time we set the needle/press play, and after a few listens, we know exactly what to expect at every bar. This led to studio releases needing to be engineered for ‘perfection’.
 
 Is music Music if the musician is not there to play it? Is music Music if it is always the same? Is music Music if it has been manipulated and engineered in post-production?
 

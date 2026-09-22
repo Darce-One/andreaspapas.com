@@ -79,10 +79,15 @@ function renderMarkdown(markdown) {
   const flushQuote = () => {
     if (!quote.length) return;
     const lines = quote.map((line) => line.trim());
-    const attribution = lines.at(-1)?.match(/^[—–-]\s*(.+)$/)?.[1];
+    const isNote = /^\[!NOTE\]$/i.test(lines[0]);
+    if (isNote) lines.shift();
+    const attribution = isNote ? null : lines.at(-1)?.match(/^[—–-]\s*(.+)$/)?.[1];
     if (attribution) lines.pop();
     const paragraphs = lines.join('\n').split(/\n\s*\n/).map((item) => item.trim()).filter(Boolean);
-    blocks.push(`<blockquote>${paragraphs.map((item) => `<p>${inlineMarkdown(item.replace(/\s*\n\s*/g, ' '))}</p>`).join('')}${attribution ? `<cite>— ${inlineMarkdown(attribution)}</cite>` : ''}</blockquote>`);
+    const content = paragraphs.map((item) => `<p>${inlineMarkdown(item.replace(/\s*\n\s*/g, ' '))}</p>`).join('');
+    blocks.push(isNote
+      ? `<aside class="reader-note" aria-label="Note"><p class="reader-note__label">Note</p>${content}</aside>`
+      : `<blockquote>${content}${attribution ? `<cite>— ${inlineMarkdown(attribution)}</cite>` : ''}</blockquote>`);
     quote = [];
   };
   for (const line of markdown.split(/\r?\n/)) {

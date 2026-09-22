@@ -36,7 +36,14 @@ archive: true
 This removes the item from its archive listing and prevents its individual page
 from being generated. Omit the field to publish the item.
 
-Supported body Markdown is intentionally simple: paragraphs, `##` and `###` headings, blockquotes, ordered/unordered lists, inline links, bold, italics, code, and images. Put local images in `assets/` and reference them relative to that folder, e.g. `![Alt text](project-image.jpg)`. For a styled quote attribution, put `> — Name` as the final line of the quote block.
+Supported body Markdown is intentionally simple: paragraphs, `##` and `###` headings, blockquotes, reader notes, ordered/unordered lists, inline links, bold, italics, code, and images. Put local images in `assets/` and reference them relative to that folder, e.g. `![Alt text](project-image.jpg)`. For a styled quote attribution, put `> — Name` as the final line of the quote block.
+
+Add a note to the reader with GitHub-style note syntax:
+
+```md
+> [!NOTE]
+> A short update or piece of context for the reader.
+```
 
 ### Embed a YouTube video
 

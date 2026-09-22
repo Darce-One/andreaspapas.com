@@ -6,6 +6,9 @@ description: How music streaming services could help local audiences find live g
 
 ![A Spotify logo on a live-gig poster](music-streaming-gigs.png)
 
+> [!NOTE]
+> Since writing this, it seems Spotify has implemented this feature.
+
 Music streaming services, Spotify in particular, are extremely well placed to advertise local music gigs and events to their listeners (and make a profit too). This article will go over how people discover gigs today and how streaming services can change this.
 
 Disclaimer: This article is based on my own experience as a music lover who has many friends in the gigging economy. The points I make are perhaps most accurate in Edinburgh, where I live, but surely apply to most cities in the English-speaking world.

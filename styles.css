@@ -508,6 +508,34 @@ li {
     text-transform: uppercase;
 }
 
+.post-body .reader-note {
+    margin: 2.5rem 0;
+    padding: 1.15rem 1.35rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    background: var(--bg-card);
+}
+
+.post-body .reader-note p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: left;
+}
+
+.post-body .reader-note p+p {
+    margin-top: .65rem;
+}
+
+.post-body .reader-note .reader-note__label {
+    color: var(--accent);
+    font-family: "Source Code Pro", monospace;
+    font-size: .68rem;
+    font-weight: 500;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+}
+
 .post-body code {
     border-radius: 2px;
     background: var(--bg-card);

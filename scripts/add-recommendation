@@ -18,7 +18,6 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode
 from urllib.request import Request, urlopen
 
-
 ROOT = Path(__file__).resolve().parent.parent
 MUSIC_SHARE = ROOT / "music-share"
 RECOMMENDATIONS = MUSIC_SHARE / "recommendations"
@@ -96,8 +95,7 @@ def musicbrainz_json(url: str) -> dict[str, Any]:
 
 def search_release_groups(album: str, artist: str) -> list[dict[str, Any]]:
     query = (
-        f'releasegroup:"{lucene_phrase(album)}" '
-        f'AND artist:"{lucene_phrase(artist)}"'
+        f'releasegroup:"{lucene_phrase(album)}" AND artist:"{lucene_phrase(artist)}"'
     )
     url = f"{MUSICBRAINZ_API}?{urlencode({'query': query, 'fmt': 'json', 'limit': 8})}"
     payload = musicbrainz_json(url)
@@ -198,7 +196,9 @@ def get_cover_art(release_group_id: str) -> bytes:
 
 
 def slugify(value: str) -> str:
-    ascii_value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+    ascii_value = (
+        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
+    )
     slug = re.sub(r"[^a-z0-9]+", "-", ascii_value.lower()).strip("-")
     return slug or "album"
 
@@ -233,7 +233,9 @@ def create_entry(
     with INDEX.open(encoding="utf-8") as index_file:
         slugs = json.load(index_file)
     if not isinstance(slugs, list) or not all(isinstance(item, str) for item in slugs):
-        raise ValueError("music-share/recommendations/index.json must contain a JSON array")
+        raise ValueError(
+            "music-share/recommendations/index.json must contain a JSON array"
+        )
     if slug in slugs:
         raise FileExistsError(f"{slug!r} is already in the recommendation index")
 
@@ -256,7 +258,9 @@ def create_entry(
 def open_in_zed(info_path: Path) -> None:
     zed = shutil.which("zed")
     if not zed:
-        print(f"\nCreated {info_path.relative_to(ROOT)}, but the zed command was not found.")
+        print(
+            f"\nCreated {info_path.relative_to(ROOT)}, but the zed command was not found."
+        )
         return
     subprocess.run([zed, str(info_path)], check=False)
 

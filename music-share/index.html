@@ -1,15 +1,87 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Music worth hearing, curated by Andreas Papaeracleous." /><title>Music Share — Andreas Papaeracleous</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" /><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" /><link rel="stylesheet" href="../styles.css" /><link rel="stylesheet" href="music-share.css" />
-  </head>
-  <body>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Music worth hearing, curated by Andreas Papaeracleous." />
+    <title>Music Share — Andreas Papaeracleous</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Source+Code+Pro:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="music-share.css" />
+</head>
+
+<body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header shell" data-site-header></header>
-    <main id="main" class="music shell"><section class="music-intro"><p class="eyebrow">The music share</p><h1>Music worth hearing.</h1><p>You will not love everything on this list, and that's okay. This is not a most-listened list or a desert-island selection—just albums that bring something new to the table.</p><a class="music-suggestion-link" href="#suggest-an-album">Have an album to share? Suggest it <span class="link-arrow" aria-hidden="true">↓</span></a></section><hr class="section-rule" /><div class="music-layout"><section class="recs-column"><h2 class="section-heading">recent picks</h2><ul class="recommendations"></ul></section><aside class="sidebar"><h2 class="section-heading">browse by tag</h2><div class="tag-cloud"></div></aside></div><section id="suggest-an-album" class="music-suggestion" aria-labelledby="music-suggestion-heading"><h2 id="music-suggestion-heading">Suggest an album</h2><p>Have something worth hearing? Send it over.</p><form class="contact-form" id="music-suggestion-form" action="https://formspree.io/f/mnpnqolw" method="POST"><div class="music-suggestion__fields"><div class="contact-form__field"><label for="suggestion-album">Album</label><input id="suggestion-album" name="album" type="text" required data-fs-field /><span class="contact-form__error" data-fs-error="album"></span></div><div class="contact-form__field"><label for="suggestion-artist">Artist</label><input id="suggestion-artist" name="artist" type="text" required data-fs-field /><span class="contact-form__error" data-fs-error="artist"></span></div></div><div class="contact-form__field"><label for="suggestion-tags">Suggested tags</label><input id="suggestion-tags" name="tags" type="text" placeholder="Jazz, ambient, electronic" aria-describedby="suggestion-tags-hint" data-fs-field /><span id="suggestion-tags-hint" class="field-hint">Separate tags with commas.</span><span class="contact-form__error" data-fs-error="tags"></span></div><div class="contact-form__field"><label for="suggestion-message">Message</label><textarea id="suggestion-message" name="message" rows="6" data-fs-field></textarea><span class="contact-form__error" data-fs-error="message"></span></div><div class="music-suggestion__fields"><div class="contact-form__field"><label for="suggestion-email">Email</label><input id="suggestion-email" name="email" type="email" autocomplete="email" data-fs-field /><span class="contact-form__error" data-fs-error="email"></span></div><div class="contact-form__field"><label for="suggestion-link">Link <span class="field-label-optional">optional</span></label><input id="suggestion-link" name="link" type="url" inputmode="url" placeholder="https://" data-fs-field /><span class="contact-form__error" data-fs-error="link"></span></div></div><input type="hidden" name="_subject" value="New Music Share album suggestion" /><div class="contact-form__status" aria-live="polite"><p data-fs-success></p><p data-fs-error></p></div><button class="contact-form__submit" type="submit" data-fs-submit-btn>Send suggestion <span aria-hidden="true">→</span></button></form></section></main>
-    <footer class="site-footer shell" data-site-footer></footer><script src="../script.js"></script><script src="music-share.js"></script><script>window.formspree = window.formspree || function () { (formspree.q = formspree.q || []).push(arguments); }; formspree('initForm', { formElement: '#music-suggestion-form', formId: 'mnpnqolw' });</script><script src="https://unpkg.com/@formspree/ajax@1" defer></script>
-  </body>
+    <main id="main" class="music shell">
+        <section class="music-intro">
+            <p class="eyebrow">The music share</p>
+            <h1>Music worth listening to.</h1>
+            <p>You will not love everything on this list, and that's okay. This is not a most-listened list or a
+                desert-island selection—just albums that bring something new to the table.</p><a
+                class="music-suggestion-link" href="#suggest-an-album">Have an album to share? Suggest it <span
+                    class="link-arrow" aria-hidden="true">↓</span></a>
+        </section>
+        <hr class="section-rule" />
+        <div class="music-layout">
+            <section class="recs-column">
+                <h2 class="section-heading">recent picks</h2>
+                <ul class="recommendations"></ul>
+            </section>
+            <aside class="sidebar">
+                <h2 class="section-heading">browse by tag</h2>
+                <div class="tag-cloud"></div>
+            </aside>
+        </div>
+        <section id="suggest-an-album" class="music-suggestion" aria-labelledby="music-suggestion-heading">
+            <h2 id="music-suggestion-heading">Suggest an album</h2>
+            <p>Have something worth hearing? Send it over.</p>
+            <form class="contact-form" id="music-suggestion-form" action="https://formspree.io/f/mnpnqolw"
+                method="POST">
+                <div class="music-suggestion__fields">
+                    <div class="contact-form__field"><label for="suggestion-album">Album</label><input
+                            id="suggestion-album" name="album" type="text" required data-fs-field /><span
+                            class="contact-form__error" data-fs-error="album"></span></div>
+                    <div class="contact-form__field"><label for="suggestion-artist">Artist</label><input
+                            id="suggestion-artist" name="artist" type="text" required data-fs-field /><span
+                            class="contact-form__error" data-fs-error="artist"></span></div>
+                </div>
+                <div class="contact-form__field"><label for="suggestion-tags">Suggested tags</label><input
+                        id="suggestion-tags" name="tags" type="text" placeholder="Jazz, ambient, electronic"
+                        aria-describedby="suggestion-tags-hint" data-fs-field /><span id="suggestion-tags-hint"
+                        class="field-hint">Separate tags with commas.</span><span class="contact-form__error"
+                        data-fs-error="tags"></span></div>
+                <div class="contact-form__field"><label for="suggestion-message">Message</label><textarea
+                        id="suggestion-message" name="message" rows="6" data-fs-field></textarea><span
+                        class="contact-form__error" data-fs-error="message"></span></div>
+                <div class="music-suggestion__fields">
+                    <div class="contact-form__field"><label for="suggestion-email">Email</label><input
+                            id="suggestion-email" name="email" type="email" autocomplete="email" data-fs-field /><span
+                            class="contact-form__error" data-fs-error="email"></span></div>
+                    <div class="contact-form__field"><label for="suggestion-link">Link <span
+                                class="field-label-optional">optional</span></label><input id="suggestion-link"
+                            name="link" type="url" inputmode="url" placeholder="https://" data-fs-field /><span
+                            class="contact-form__error" data-fs-error="link"></span></div>
+                </div><input type="hidden" name="_subject" value="New Music Share album suggestion" />
+                <div class="contact-form__status" aria-live="polite">
+                    <p data-fs-success></p>
+                    <p data-fs-error></p>
+                </div><button class="contact-form__submit" type="submit" data-fs-submit-btn>Send suggestion <span
+                        aria-hidden="true">→</span></button>
+            </form>
+        </section>
+    </main>
+    <footer class="site-footer shell" data-site-footer></footer>
+    <script src="../script.js"></script>
+    <script src="music-share.js"></script>
+    <script>window.formspree = window.formspree || function () {(formspree.q = formspree.q || []).push(arguments);}; formspree('initForm', {formElement: '#music-suggestion-form', formId: 'mnpnqolw'});</script>
+    <script src="https://unpkg.com/@formspree/ajax@1" defer></script>
+</body>
+
 </html>
